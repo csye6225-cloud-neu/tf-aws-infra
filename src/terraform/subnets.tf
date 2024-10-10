@@ -2,7 +2,7 @@
 resource "aws_subnet" "public_subnets" {
   for_each = zipmap(var.public_subnets_cidrs, var.availability_zones)
 
-  vpc_id            = aws_vpc.csye6225_vpc.id  # Reference to your VPC
+  vpc_id            = aws_vpc.csye6225_vpc.id
   cidr_block        = each.key
   availability_zone = each.value
 
@@ -17,7 +17,7 @@ resource "aws_subnet" "public_subnets" {
 resource "aws_subnet" "private_subnets" {
   for_each = zipmap(var.private_subnets_cidrs, var.availability_zones)
 
-  vpc_id            = aws_vpc.csye6225_vpc.id  # Reference to your VPC
+  vpc_id            = aws_vpc.csye6225_vpc.id
   cidr_block        = each.key
   availability_zone = each.value
 
