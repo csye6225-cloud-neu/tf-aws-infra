@@ -37,17 +37,19 @@ availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
 1.	Initialize Terraform: This step downloads the necessary provider plugins.
 ```
+cd src/terraform
 terraform init
 ```
 2.	Preview the infrastructure changes: This will show you the resources that will be created, modified, or destroyed.
 ```
-terraform plan
+export AWS_PROFILE=profile_name
+terraform plan -var-file="terraform_file.tfvars"
 ```
 3.	Apply the configuration: This command creates the networking resources in AWS. Pass the -var-file flag to provide a custom terraform.tfvars file:
 ```
-terraform apply -var-file="path/to/dev.tfvars"
+terraform apply -var-file="terraform_file.tfvars"
 ```
 4.	Destroy resources: When you’re done and wish to clean up the resources, use the destroy command.
 ```
-terraform destroy
+terraform destroy -var-file="terraform_file.tfvars"
 ```
