@@ -20,9 +20,12 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        working-directory: ./src/terraform
 
       - name: Terraform Format
         run: terraform fmt -recursive -check
+        working-directory: ./src/terraform
 
-      - name: Terraform validate
+      - name: Terraform Validate
         run: terraform validate
+        working-directory: ./src/terraform
