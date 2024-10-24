@@ -1,7 +1,12 @@
+# Application security group
 resource "aws_security_group" "app_sg" {
   name        = "application security group"
   description = "Security group for web application EC2 instance"
   vpc_id      = aws_vpc.csye6225_vpc.id
+
+  tags = {
+    Name = "application"
+  }
 
   ingress {
     description = "Allow SSH"
@@ -41,8 +46,33 @@ resource "aws_security_group" "app_sg" {
     protocol    = "-1" # All traffic
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+# RDS security group
+resource "aws_security_group" "db_sg" {
+  name        = "db security group"
+  description = "Security group for RDS instance"
+  vpc_id      = aws_vpc.csye6225_vpc.id
 
   tags = {
-    Name = "application security group"
+    Name = "database"
   }
+
+  # Egress rule to allow outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Ingress rule to allow MySQL traffic from the application security group
+resource "aws_security_group_rule" "db_ingress" {
+  type                     = "ingress"
+  from_port                = var.db_port
+  to_port                  = var.db_port
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.db_sg.id
+  source_security_group_id = aws_security_group.app_sg.id
 }

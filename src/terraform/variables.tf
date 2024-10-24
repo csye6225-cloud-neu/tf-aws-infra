@@ -44,3 +44,51 @@ variable "ec2_volume_type" {
   type        = string
   default     = "gp2"
 }
+
+variable "db_port" {
+  description = "The database port"
+  type        = number
+  default     = 3306
+}
+
+variable "db_name" {
+  description = "The name of the database"
+  type        = string
+  default     = "user"
+}
+
+variable "db_password" {
+  description = "The database password for the RDS instance."
+  type        = string
+  sensitive   = true
+}
+
+variable "db_allocated_storage" {
+  description = "The allocated storage for the database (in GB)"
+  type        = number
+  default     = 20
+}
+
+variable "db_username" {
+  description = "The username for the database"
+  type        = string
+  default     = "csye6225"
+}
+
+variable "db_instance_class" {
+  description = "The RDS instance class"
+  type        = string
+  default     = "db.t4g.micro"
+}
+
+variable "dialect" {
+  description = "The database dialect"
+  type        = string
+  default     = "mysql"
+}
+
+variable "aws_region" {
+  description = "The AWS region"
+  type        = string
+  default     = "us-east-1"
+}

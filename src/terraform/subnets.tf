@@ -27,3 +27,12 @@ resource "aws_subnet" "private_subnets" {
     Name = "csye6225-private-subnet-${each.value}"
   }
 }
+
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name       = "csye6225-rds-subnet-group"
+  subnet_ids = values(aws_subnet.private_subnets)[*].id
+
+  tags = {
+    Name = "csye6225-rds-subnet-group"
+  }
+}
