@@ -23,7 +23,7 @@ resource "aws_instance" "webapp" {
     ####################################################
     cd /opt/webapp
     touch .env
-    echo "DB_HOST=${aws_db_instance.rds_instance.endpoint} | cut -d':' -f1)" >> .env
+    echo "DB_HOST=$(echo ${aws_db_instance.rds_instance.endpoint} | cut -d':' -f1)" >> .env
     echo "DB_USERNAME=${var.db_username}" >> .env
     echo "DB_PASSWORD=${var.db_password}" >> .env
     echo "DB_NAME=${var.db_name}" >> .env
