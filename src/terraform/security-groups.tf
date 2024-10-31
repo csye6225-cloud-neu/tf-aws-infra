@@ -46,6 +46,15 @@ resource "aws_security_group" "app_sg" {
     protocol    = "-1" # All traffic
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  # StatsD UDP port
+  ingress {
+    description = "Allow StatsD UDP"
+    from_port   = 8125
+    to_port     = 8125
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # RDS security group
