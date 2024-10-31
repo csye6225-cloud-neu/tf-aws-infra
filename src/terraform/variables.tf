@@ -92,3 +92,19 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
+
+variable "subdomain" {
+  description = "The subdomain for the Route 53 hosted zone"
+  type        = string
+  default     = "dev.pinkaew-cloud.me"
+}
+
+variable "aws_access_key" {
+  description = "The AWS access key"
+  type        = string
+}
+
+variable "aws_secret_key" {
+  description = "The AWS secret key"
+  type        = string
+}
