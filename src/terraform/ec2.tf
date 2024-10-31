@@ -43,5 +43,6 @@ resource "aws_instance" "webapp" {
         -m ec2 \
         -c file:/opt/cloudwatch-agent.json \
         -s
+    sudo systemctl restart amazon-cloudwatch-agent
   EOF
 }
