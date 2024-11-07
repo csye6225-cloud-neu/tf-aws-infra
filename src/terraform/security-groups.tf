@@ -17,19 +17,11 @@ resource "aws_security_group" "app_sg" {
   }
 
   ingress {
-    description = "Allow HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Allow HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "Allow HTTP"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lb_sg.id] # Only allow traffic from load balancer
   }
 
   ingress {
@@ -46,15 +38,6 @@ resource "aws_security_group" "app_sg" {
     protocol    = "-1" # All traffic
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  # StatsD UDP port
-  ingress {
-    description = "Allow StatsD UDP"
-    from_port   = 8125
-    to_port     = 8125
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 # RDS security group
@@ -67,6 +50,13 @@ resource "aws_security_group" "db_sg" {
     Name = "database"
   }
 
+  ingress {
+    from_port       = var.db_port
+    to_port         = var.db_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.app_sg.id]
+  }
+
   # Egress rule to allow outbound traffic
   egress {
     from_port   = 0
@@ -76,12 +66,36 @@ resource "aws_security_group" "db_sg" {
   }
 }
 
-# Ingress rule to allow MySQL traffic from the application security group
-resource "aws_security_group_rule" "db_ingress" {
-  type                     = "ingress"
-  from_port                = var.db_port
-  to_port                  = var.db_port
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.db_sg.id
-  source_security_group_id = aws_security_group.app_sg.id
+# Load Balancer Security Group
+resource "aws_security_group" "lb_sg" {
+  name        = "load balancer"
+  description = "Security group for load balancer"
+  vpc_id      = aws_vpc.csye6225_vpc.id
+
+  tags = {
+    Name = "load balancer"
+  }
+
+  ingress {
+    description = "Allow HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }

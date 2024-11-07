@@ -1,11 +1,10 @@
 resource "aws_s3_bucket" "csye6225_bucket" {
   # bucket_prefix = "csye6225-bucket-"
-  bucket        = "csye6225-fall2024-bucket-pinkaew"
+  bucket        = uuid()
   force_destroy = true
 
   tags = {
-    Name        = "csye6225_bucket"
-    Environment = "Dev"
+    Name = "csye6225_bucket"
   }
 }
 
@@ -32,24 +31,4 @@ resource "aws_s3_bucket_lifecycle_configuration" "lifecycle_policy" {
       storage_class = "STANDARD_IA"
     }
   }
-}
-
-resource "aws_iam_policy" "delete_non_empty_bucket" {
-  name        = "AllowDeleteNonEmptyBucket"
-  description = "Policy to allow deletion of non-empty S3 buckets"
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action   = "s3:DeleteBucket",
-        Effect   = "Allow",
-        Resource = "arn:aws:s3:::${aws_s3_bucket.csye6225_bucket.bucket}"
-      },
-      {
-        Action   = "s3:DeleteObject",
-        Effect   = "Allow",
-        Resource = "arn:aws:s3:::${aws_s3_bucket.csye6225_bucket.bucket}/*"
-      }
-    ]
-  })
 }
