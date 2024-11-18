@@ -108,3 +108,25 @@ variable "aws_secret_key" {
   description = "The AWS secret key"
   type        = string
 }
+
+variable "min_max_threshold" {
+  description = "The threshold for the CloudWatch alarm"
+  type        = list(number)
+  default     = [6, 8]
+}
+
+variable "sendgrid_api_key" {
+  description = "The SendGrid API key"
+  type        = string
+}
+
+variable "email_from" {
+  description = "The email address from which emails are sent"
+  type        = string
+  default     = "support@pinkaew-cloud.me"
+}
+
+variable "lambda_dir" {
+  description = "The path to the ZIP file containing the Lambda function code"
+  type        = string
+}

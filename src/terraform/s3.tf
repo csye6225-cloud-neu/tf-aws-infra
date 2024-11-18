@@ -1,5 +1,4 @@
 resource "aws_s3_bucket" "csye6225_bucket" {
-  # bucket_prefix = "csye6225-bucket-"
   bucket        = uuid()
   force_destroy = true
 

@@ -1,53 +1,3 @@
-resource "aws_launch_template" "csye6225_asg" {
-  name          = "csye6225_asg"
-  image_id      = var.ami_id
-  key_name      = var.ami_key_name
-  instance_type = "t2.micro"
-
-  network_interfaces {
-    associate_public_ip_address = true
-    security_groups             = [aws_security_group.app_sg.id]
-  }
-
-  iam_instance_profile {
-    name = aws_iam_instance_profile.cloudwatch_instance_profile.name
-  }
-
-  user_data = base64encode(<<-EOF
-    #!/bin/bash
-    cd /opt/webapp
-    sudo touch .env
-    sudo echo "DB_HOST=$(echo ${aws_db_instance.rds_instance.endpoint} | cut -d':' -f1)" >> .env
-    sudo echo "DB_USERNAME=${var.db_username}" >> .env
-    sudo echo "DB_PASSWORD=${var.db_password}" >> .env
-    sudo echo "DB_NAME=${var.db_name}" >> .env
-    sudo echo "DB_DIALECT=${var.dialect}" >> .env
-    sudo echo "PORT=${var.app_port}" >> .env
-    sudo echo "AWS_ACCESS_KEY_ID=${var.aws_access_key}" >> .env
-    sudo echo "AWS_SECRET_ACCESS_KEY=${var.aws_secret_key}" >> .env
-    sudo echo "AWS_REGION=${var.aws_region}" >> .env
-    sudo echo "S3_BUCKET_NAME=${aws_s3_bucket.csye6225_bucket.bucket}" >> .env
-
-    sudo chmod 600 .env
-    sudo chown -R csye6225:csye6225 .env
-
-    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-        -a fetch-config \
-        -m ec2 \
-        -c file:/opt/cloudwatch-agent.json \
-        -s
-    sudo systemctl restart amazon-cloudwatch-agent
-  EOF
-  )
-
-  tag_specifications {
-    resource_type = "instance"
-    tags = {
-      Name = "webapp"
-    }
-  }
-}
-
 resource "aws_autoscaling_group" "csye6225_asg" {
   name                = "csye6225_asg"
   desired_capacity    = 3
@@ -57,7 +7,7 @@ resource "aws_autoscaling_group" "csye6225_asg" {
   vpc_zone_identifier = [for subnet in aws_subnet.public_subnets : subnet.id]
 
   launch_template {
-    id      = aws_launch_template.csye6225_asg.id
+    id      = aws_launch_template.csye6225_launch_template.id
     version = "$Latest"
   }
 
@@ -68,15 +18,60 @@ resource "aws_autoscaling_group" "csye6225_asg" {
   }
 }
 
-resource "aws_autoscaling_policy" "cpu_target_policy" {
-  name                   = "cpu_target_policy"
+# Scale-up policy
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "scale-up-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 60
   autoscaling_group_name = aws_autoscaling_group.csye6225_asg.name
-  policy_type            = "TargetTrackingScaling"
+}
 
-  target_tracking_configuration {
-    predefined_metric_specification {
-      predefined_metric_type = "ASGAverageCPUUtilization"
-    }
-    target_value = 4 # Average between 3% and 5%
+# Scale-down policy
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "scale-down-policy"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 60
+  autoscaling_group_name = aws_autoscaling_group.csye6225_asg.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "scale_up_alarm" {
+  alarm_name          = "scale-up-cpu-usage"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  period              = 300 # Check every 5 minute
+  statistic           = "Average"
+  namespace           = "AWS/EC2"
+  threshold           = var.min_max_threshold[1]
+  alarm_description   = "Alarm when CPU usage is greater than ${var.min_max_threshold[1]}%"
+  alarm_actions       = [aws_autoscaling_policy.scale_up.arn]
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.csye6225_asg.name
+  }
+  tags = {
+    Name = "scale-up-cpu-usage"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
+  alarm_name          = "scale-down-cpu-usage"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  period              = 300 # Check every 5 minute
+  statistic           = "Average"
+  namespace           = "AWS/EC2"
+  threshold           = var.min_max_threshold[0]
+  alarm_description   = "Alarm when CPU usage is less than ${var.min_max_threshold[0]}%"
+  alarm_actions       = [aws_autoscaling_policy.scale_down.arn]
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.csye6225_asg.name
+  }
+  tags = {
+    Name = "scale-down-cpu-usage"
   }
 }
