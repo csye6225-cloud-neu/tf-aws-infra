@@ -5,6 +5,7 @@ resource "aws_lb" "csye6225_lb" {
   security_groups            = [aws_security_group.lb_sg.id]
   subnets                    = [for subnet in aws_subnet.public_subnets : subnet.id]
   enable_deletion_protection = false
+  ip_address_type            = "dualstack" # Enable IPv4 and IPv6
 
   tags = {
     Name = "csye6225-lb"
