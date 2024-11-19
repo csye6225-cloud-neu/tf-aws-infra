@@ -1,6 +1,7 @@
 # Create Public Subnets
 resource "aws_subnet" "public_subnets" {
-  for_each = zipmap(var.public_subnets_cidrs, var.availability_zones)
+  for_each        = zipmap(var.public_subnets_cidrs, var.availability_zones)
+  ipv6_cidr_block = cidrsubnet(aws_vpc.csye6225_vpc.ipv6_cidr_block, 8, index(var.public_subnets_cidrs, each.key))
 
   vpc_id            = aws_vpc.csye6225_vpc.id
   cidr_block        = each.key
