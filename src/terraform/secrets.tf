@@ -60,7 +60,7 @@ resource "aws_kms_alias" "secrets_kms_key_alias" {
 
 # AWS Secrets Manager for RDS password
 resource "aws_secretsmanager_secret" "db_password_secret" {
-  name = "database_password"
+  name        = "database_password"
   kms_key_id  = aws_kms_key.secrets_manager.key_id
   description = "Password for RDS"
 }
