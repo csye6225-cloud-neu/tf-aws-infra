@@ -19,7 +19,7 @@ resource "aws_launch_template" "csye6225_launch_template" {
     touch .env
     echo "DB_HOST=${aws_db_instance.rds_instance.address}" >> .env
     echo "DB_USERNAME=${var.db_username}" >> .env
-    echo "DB_PASSWORD=${var.db_password}" >> .env
+    echo "DB_PASSWORD=${random_password.db_password.result}" >> .env
     echo "DB_NAME=${var.db_name}" >> .env
     echo "DB_DIALECT=${var.dialect}" >> .env
     echo "PORT=${var.app_port}" >> .env
@@ -41,10 +41,81 @@ resource "aws_launch_template" "csye6225_launch_template" {
   EOF
   )
 
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_size = 8
+      volume_type = "gp2"
+      kms_key_id  = aws_kms_key.launch_template_key.arn
+      encrypted   = true
+    }
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags = {
       Name = "webapp"
     }
   }
+}
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_kms_key" "launch_template_key" {
+  description             = "KMS key for EC2 launch template"
+  enable_key_rotation     = true
+  rotation_period_in_days = 90
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id      = "key-default-1"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid : "Allow use of the key",
+        Effect : "Allow",
+        Principal : {
+          AWS : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+        },
+        Action : [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ],
+        Resource : "*"
+      },
+      {
+        Sid : "Allow attachment of persistent resources",
+        Effect : "Allow",
+        Principal : {
+          AWS : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+        },
+        Action : [
+          "kms:CreateGrant",
+          "kms:ListGrants",
+          "kms:RevokeGrant"
+        ],
+        Resource : "*",
+        Condition : {
+          Bool : {
+            "kms:GrantIsForAWSResource" : "true"
+          }
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_kms_alias" "launch_template_kms_key_alias" {
+  name          = "alias/launch-template-key"
+  target_key_id = aws_kms_key.launch_template_key.key_id
 }
