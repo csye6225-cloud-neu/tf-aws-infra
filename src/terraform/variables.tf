@@ -57,12 +57,6 @@ variable "db_name" {
   default     = "user"
 }
 
-variable "db_password" {
-  description = "The database password for the RDS instance."
-  type        = string
-  sensitive   = true
-}
-
 variable "db_allocated_storage" {
   description = "The allocated storage for the database (in GB)"
   type        = number
