@@ -39,6 +39,7 @@ resource "aws_kms_key" "rds_key" {
   description              = "KMS key for RDS encryption"
   enable_key_rotation      = true
   rotation_period_in_days  = 90
+  deletion_window_in_days  = 7
   customer_master_key_spec = "SYMMETRIC_DEFAULT"
   policy = jsonencode({
     Version = "2012-10-17"

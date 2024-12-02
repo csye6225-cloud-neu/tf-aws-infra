@@ -2,6 +2,7 @@ resource "aws_kms_key" "secrets_manager" {
   description              = "KMS key for Secrets Manager"
   enable_key_rotation      = true
   rotation_period_in_days  = 90
+  deletion_window_in_days  = 7
   customer_master_key_spec = "SYMMETRIC_DEFAULT"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -60,9 +61,13 @@ resource "aws_kms_alias" "secrets_kms_key_alias" {
 
 # AWS Secrets Manager for RDS password
 resource "aws_secretsmanager_secret" "db_password_secret" {
-  name        = "database_password"
-  kms_key_id  = aws_kms_key.secrets_manager.key_id
-  description = "Password for RDS"
+  name                    = "database_password"
+  kms_key_id              = aws_kms_key.secrets_manager.key_id
+  description             = "Password for RDS"
+  recovery_window_in_days = 0
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "aws_secretsmanager_secret_version" "db_password_version" {
@@ -74,9 +79,13 @@ resource "aws_secretsmanager_secret_version" "db_password_version" {
 
 # AWS Secrets Manager for Sendgrid API key
 resource "aws_secretsmanager_secret" "api_key_secret" {
-  name        = "sendgrid_api_key"
-  kms_key_id  = aws_kms_key.secrets_manager.key_id
-  description = "API key for Sendgrid"
+  name                    = "sendgrid_api_key"
+  kms_key_id              = aws_kms_key.secrets_manager.key_id
+  description             = "API key for Sendgrid"
+  recovery_window_in_days = 0
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "aws_secretsmanager_secret_version" "email_service_secret_version" {

@@ -26,6 +26,7 @@ resource "aws_kms_key" "s3_bucket_key" {
   description             = "KMS key for S3 bucket encryption"
   enable_key_rotation     = true
   rotation_period_in_days = 90
+  deletion_window_in_days = 7
   policy = jsonencode({
     Version = "2012-10-17"
     Id      = "key-default-1"

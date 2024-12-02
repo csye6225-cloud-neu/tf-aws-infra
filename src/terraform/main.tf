@@ -65,6 +65,7 @@ resource "aws_kms_key" "launch_template_key" {
   description             = "KMS key for EC2 launch template"
   enable_key_rotation     = true
   rotation_period_in_days = 90
+  deletion_window_in_days = 7
   policy = jsonencode({
     Version = "2012-10-17"
     Id      = "key-default-1"

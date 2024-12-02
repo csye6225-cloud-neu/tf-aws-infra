@@ -45,9 +45,10 @@ terraform init
 export AWS_PROFILE=profile_name
 terraform plan -var-file="terraform_file.tfvars"
 ```
-3. Import SSL certificate to AWS Certificate Manager
+3. Import SSL certificate to AWS Certificate Manager via AWS CLI
 ```sh
 aws acm import-certificate --certificate "fileb://certificate.crt" \
+      --certificate-chain "fileb://certificatechain.pem" \
       --private-key "fileb://private.pem"
 ```
 4.	Apply the configuration: This command creates the networking resources in AWS. Pass the -var-file flag to provide a custom terraform.tfvars file:
