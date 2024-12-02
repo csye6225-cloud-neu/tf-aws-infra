@@ -36,20 +36,26 @@ availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 > To apply the Terraform configurations and provision the resources:
 
 1.	Initialize Terraform: This step downloads the necessary provider plugins.
-```
+```sh
 cd src/terraform
 terraform init
 ```
 2.	Preview the infrastructure changes: This will show you the resources that will be created, modified, or destroyed.
-```
+```sh
 export AWS_PROFILE=profile_name
 terraform plan -var-file="terraform_file.tfvars"
 ```
-3.	Apply the configuration: This command creates the networking resources in AWS. Pass the -var-file flag to provide a custom terraform.tfvars file:
+3. Import SSL certificate to AWS Certificate Manager via AWS CLI
+```sh
+aws acm import-certificate --certificate "fileb://certificate.crt" \
+      --certificate-chain "fileb://certificatechain.pem" \
+      --private-key "fileb://private.pem"
 ```
+4.	Apply the configuration: This command creates the networking resources in AWS. Pass the -var-file flag to provide a custom terraform.tfvars file:
+```sh
 terraform apply -var-file="terraform_file.tfvars"
 ```
-4.	Destroy resources: When you’re done and wish to clean up the resources, use the destroy command.
-```
+5.	Destroy resources: When you’re done and wish to clean up the resources, use the destroy command.
+```sh
 terraform destroy -var-file="terraform_file.tfvars"
 ```

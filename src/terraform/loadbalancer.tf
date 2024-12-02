@@ -14,13 +14,24 @@ resource "aws_lb" "csye6225_lb" {
 
 resource "aws_lb_listener" "csye6225_lb_listener" {
   load_balancer_arn = aws_lb.csye6225_lb.arn
-  port              = 80
-  protocol          = "HTTP"
+  port              = 443
+  protocol          = "HTTPS"
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.webapp_tg.arn
   }
+  certificate_arn = data.aws_acm_certificate.ssl.arn
+}
+
+data "aws_acm_certificate" "ssl" {
+  domain   = var.subdomain
+  statuses = ["ISSUED"]
+  types    = ["IMPORTED"]
+}
+
+output "certificate_arn" {
+  value = data.aws_acm_certificate.ssl.arn
 }
 
 resource "aws_lb_target_group" "webapp_tg" {

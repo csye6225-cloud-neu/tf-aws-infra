@@ -115,6 +115,22 @@ resource "aws_iam_policy" "lambda_rds" {
   })
 }
 
+resource "aws_iam_policy" "lambda_secrets" {
+  name        = "LambdaSecretsAccessPolicy"
+  description = "Allow Lambda to access Sendgrid API key in Secrets Manager"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "secretsmanager:GetSecretValue",
+        Resource = aws_secretsmanager_secret.api_key_secret.arn
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "lambda_rds" {
   role       = aws_iam_role.iam_for_lambda.name
   policy_arn = aws_iam_policy.lambda_rds.arn
@@ -125,12 +141,7 @@ resource "aws_iam_role_policy_attachment" "lambda_basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# resource "aws_iam_role_policy_attachment" "lambda_secrets" {
-#   role       = aws_iam_role.iam_for_lambda.name
-#   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaSecretsManagerExecutionRole"
-# }
-
-# resource "aws_iam_role_policy_attachment" "lambda_vpc" {
-#   role       = aws_iam_role.iam_for_lambda.name
-#   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-# }
+resource "aws_iam_role_policy_attachment" "lambda_secrets" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = aws_iam_policy.lambda_secrets.arn
+}

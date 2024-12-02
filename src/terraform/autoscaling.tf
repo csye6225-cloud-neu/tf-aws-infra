@@ -1,8 +1,8 @@
 resource "aws_autoscaling_group" "csye6225_asg" {
   name                = "csye6225_asg"
-  desired_capacity    = 3
-  min_size            = 3
-  max_size            = 5
+  desired_capacity    = 1
+  min_size            = 1
+  max_size            = 2
   default_cooldown    = 60
   vpc_zone_identifier = [for subnet in aws_subnet.public_subnets : subnet.id]
 
